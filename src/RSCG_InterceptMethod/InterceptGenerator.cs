@@ -79,11 +79,17 @@ public class InterceptGenerator : IIncrementalGenerator
 
             //bool IsStaticMethod = true;
             ILocalReferenceOperation? local = null;
-            if (inst is ILocalReferenceOperation local1)
+            if(inst != null)
             {
+                if (inst is not ILocalReferenceOperation local1)
+                {
+                    continue;
+                }
                 local = local1;
-                //IsStaticMethod = false;
+
             }
+            
+            
 
             var fullMethod = inv.TargetMethod.ToDisplayString();
             if (fullMethod != fullName)

@@ -5,7 +5,7 @@ internal class Person
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    //[InterceptMethod(WhatToIntercept.Timing)]
+    [InterceptMethod(WhatToIntercept.Timing)]
     public async Task<string> FullName (int sec){
 
         await Task.Delay(sec);
