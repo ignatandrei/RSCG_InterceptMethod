@@ -1,0 +1,56 @@
+@inherits RazorBlade.PlainTextTemplate<GenerateDataFromInterceptMethod>;
+@{
+    var loc = Model.data;
+}
+#pragma warning disable CS1591 
+#pragma warning disable CS9113
+#pragma warning disable CS8604
+namespace System.Runtime.CompilerServices{
+[AttributeUsage(AttributeTargets.Method,AllowMultiple =true)]
+file class InterceptsLocationAttribute(string filePath, int line, int character) : Attribute
+{
+}
+}//end namespace
+namespace RSCG_InterceptMethod{
+static partial class SimpleIntercept
+{
+
+//replace code:@loc.code
+//replace code:@loc.CodeNumbered
+[System.Runtime.CompilerServices.InterceptsLocation(@@"@loc.Path", @loc.Line, @loc.StartMethod)]
+[System.Diagnostics.DebuggerStepThrough()]
+public static @(Model.HasTaskReturnType ? "async" : "") @Model.TypeReturn @Model.MethodSignature ( @Model.ThisArgument @Model.ArgumentsForCallMethod )
+{
+ RSCG_InterceptMethodCommon.DataFromInterceptTiming dataFromInterceptTiming = new RSCG_InterceptMethodCommon.DataFromInterceptTiming("@Model.TypeOfClass","@Model.MethodName");
+@if (Model.IsVoid())
+{
+    <text>
+        try{
+        
+        @(Model.HasTaskReturnType ? "await" : "") @Model.CallMethod;
+
+
+        }
+
+    </text>
+}
+else
+{
+    <text>
+                try{
+
+        var data= @(Model.HasTaskReturnType ? "await" : "") @Model.CallMethod;
+
+        return data;
+        }
+    </text>
+}
+    finally
+    {
+
+dataFromInterceptTiming.EndTime=System.DateTime.UtcNow;
+RSCG_InterceptMethodCommon.InterceptMethodCall.InterceptMethod(dataFromInterceptTiming);
+    }
+}//end method
+}//end class
+}//end namespace
