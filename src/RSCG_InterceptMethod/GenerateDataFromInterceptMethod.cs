@@ -1,28 +1,29 @@
 ﻿using Microsoft.CodeAnalysis.Operations;
-using System.Drawing;
-
 namespace RSCG_InterceptMethod;
 [DebuggerDisplay("{MethodInvocation}")]
 internal class GenerateDataFromInterceptMethod
 {
     private readonly IInvocationOperation inv;
     private Compilation compilation;
-    private ILocalReferenceOperation local;
+    private ILocalReferenceOperation? local;
     private readonly IMethodSymbol methodSymbol;
     public DataForEachIntercept data;
     public string TypeOfClass;
     public string MethodName;
     public string TypeReturn;
     public string NameOfVariable;
-    public GenerateDataFromInterceptMethod(Compilation compilation, IInvocationOperation inv, ILocalReferenceOperation local, IMethodSymbol type)
+    public GenerateDataFromInterceptMethod(Compilation compilation, IInvocationOperation inv, ILocalReferenceOperation? local, IMethodSymbol type)
     {
         this.compilation = compilation;
         this.inv = inv;
         this.local = local;
         this.methodSymbol = type;
-        
-        
-        this.NameOfVariable = local.Local.Name;
+        this.NameOfVariable = "";
+        if (this.local != null)
+        {
+            this.NameOfVariable = this.local.Local.Name;
+        }
+
         this.MethodName = inv.TargetMethod.Name;
         INamedTypeSymbol namedTypeSymbol = methodSymbol.ContainingType;
 
@@ -39,7 +40,7 @@ internal class GenerateDataFromInterceptMethod
             data.StartMethod += (NameOfVariable + ".").Length;
         }
         else
-            data.StartMethod = data.code.IndexOf(MethodName + "(", data.startLinePosition.Character);        
+            data.StartMethod = data.code.IndexOf(MethodName + "(", data.startLinePosition.Character)+1;        
         
     }
     public bool IsVoid()
@@ -50,6 +51,8 @@ internal class GenerateDataFromInterceptMethod
     {
         get
         {
+            if(local == null)
+                return "";
             string ret= $"this {this.TypeOfClass} {NameOfVariable}";
             if (ArgumentsWithWhichIsCalled.Length > 0)
                 ret += ",";
@@ -68,7 +71,7 @@ internal class GenerateDataFromInterceptMethod
             string argumentsForCallMethod = "";
             foreach (var item in arguments)
             {
-                argumentsForCallMethod +=item.Type.Name +" "+  item.Name.ToString() + ", ";
+                argumentsForCallMethod +=item.Type.ToDisplayString() +" "+  item.Name.ToString() + ", ";
             }
             argumentsForCallMethod = argumentsForCallMethod.Substring(0, argumentsForCallMethod.Length - 2);
             return argumentsForCallMethod;
@@ -85,7 +88,7 @@ internal class GenerateDataFromInterceptMethod
             string argumentsForCallMethod = "";
             foreach (var item in arguments)
             {
-                argumentsForCallMethod +=item.Name.ToString() + ", ";
+                argumentsForCallMethod +=item.Name + ", ";
             }
             argumentsForCallMethod = argumentsForCallMethod.Substring(0, argumentsForCallMethod.Length - 2);
             return argumentsForCallMethod;
@@ -93,7 +96,7 @@ internal class GenerateDataFromInterceptMethod
     }
     public string CallMethod { 
         get{
-            var method = local.Syntax.ToString();
+            var method =(local!=null)? local.Syntax.ToString():this.TypeOfClass;
             method += ".";
             method += this.MethodName;
             method += "(";

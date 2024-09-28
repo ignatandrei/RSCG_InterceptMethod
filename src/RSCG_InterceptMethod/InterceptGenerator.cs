@@ -64,7 +64,7 @@ public class InterceptGenerator : IIncrementalGenerator
 
     private void DoTiming(IMethodSymbol type, IOperation[] methods, Compilation compilation, SourceProductionContext spc)
     {
-        var name = type.Name;
+        var fullName = type.ToDisplayString();
         var className = type.ContainingType.Name;
         //var method = methods.FirstOrDefault(m => m.Syntax.GetLocation().GetLineSpan().StartLinePosition.Line == type.Locations[0].GetLineSpan().StartLinePosition.Line);
         foreach (var item in methods)
@@ -72,21 +72,40 @@ public class InterceptGenerator : IIncrementalGenerator
             var inv = item as IInvocationOperation;
             if (inv == null)
                 continue;
-            var inst = inv.Instance;
-            if(inst is not ILocalReferenceOperation local)
-                continue;
-            //if (inst is null)
-            //    continue;
-            if(local.Type is not ITypeSymbol localType)
-                continue;
-            
-            if (!SymbolEqualityComparer.Default.Equals(localType, type.ContainingType))
+            if (inv.Type is not ITypeSymbol localType)
                 continue;
 
-            Console.WriteLine(inst.Kind);
-            var gen=new GenerateDataFromInterceptMethod(compilation,inv,local, type);
-            gen.WriteFile(spc);
+            var inst = inv.Instance;
+
+            //bool IsStaticMethod = true;
+            ILocalReferenceOperation? local = null;
+            if (inst is ILocalReferenceOperation local1)
+            {
+                local = local1;
+                //IsStaticMethod = false;
+            }
+
+            var fullMethod = inv.TargetMethod.ToDisplayString();
+            if (fullMethod != fullName)
+                continue;
+            ////Console.WriteLine("isstatic"+IsStaticMethod);
+            //if (!SymbolEqualityComparer.Default.Equals(localType, type.ContainingType))
+            //    continue;
+
+            GenerateForInstanceMethods(type, compilation, spc, inv, local);
+
+            
+            
+            
         }
+    }
+
+    private static void GenerateForInstanceMethods(IMethodSymbol type, Compilation compilation, SourceProductionContext spc, IInvocationOperation inv,  ILocalReferenceOperation? local)
+    {
+        
+
+        var gen = new GenerateDataFromInterceptMethod(compilation, inv, local, type);
+        gen.WriteFile(spc);
     }
 
     private bool IsSyntaxTargetForGeneration(SyntaxNode s)

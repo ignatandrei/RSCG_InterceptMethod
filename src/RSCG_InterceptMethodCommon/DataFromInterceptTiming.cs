@@ -7,7 +7,7 @@ public struct DataFromInterceptTiming
     public DateTime StartTime;
     public DateTime EndTime;
 
-    public DataFromInterceptTiming(string methodName,string className)
+    public DataFromInterceptTiming(string className, string methodName)
     {
         StartTime = DateTime.UtcNow;
         EndTime = DateTime.UtcNow;
